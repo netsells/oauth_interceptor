@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 
 /// Used to implement a grant type
 abstract class OAuthGrantType {
-  RequestOptions handle(RequestOptions request);
+  /// Update a request according to the requirements of the grant type.
+  ///
+  /// Usually used to add the required parameters to the request body.
+  FutureOr<RequestOptions> handle(RequestOptions request);
 }
 
 /// Grant type for Client Credentials

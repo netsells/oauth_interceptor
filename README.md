@@ -59,7 +59,7 @@ The packages exposes an `OAuthGrantType` abstract class which can be implemented
 ```dart
 class CustomGrantType implements OAuthGrantType {
     @override
-    RequestOptions handle(RequestOptions request) {
+    FutureOr<RequestOptions> handle(RequestOptions request) async {
         // Do something fancy with the request
         return request;
     }

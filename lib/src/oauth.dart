@@ -56,7 +56,7 @@ class OAuth extends Interceptor {
     await logout();
 
     final dio = this.dio ?? Dio();
-    final options = grant.handle(
+    final options = await grant.handle(
       RequestOptions(
         path: tokenUrl,
         method: 'POST',
