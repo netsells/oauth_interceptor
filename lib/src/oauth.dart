@@ -28,6 +28,8 @@ class OAuth extends Interceptor {
     return token != null;
   }
 
+  Future<String?> get token async => storage.read(key: '$name-token');
+
   @override
   Future<void> onRequest(
     RequestOptions options,
