@@ -1,3 +1,7 @@
+## 1.3.0
+
+- Dependency updates
+
 ## 1.2.0
 
 - Add `token` getter to `OAuth`, allowing the user to read the token
