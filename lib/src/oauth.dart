@@ -35,7 +35,7 @@ class OAuth extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final expiresAtMillis = await storage.read(key: '$name-expiresAt');
+    final expiresAtMillis = await storage.read(key: '$name-expires-at');
     if (expiresAtMillis != null) {
       final expiresAt = DateTime.fromMillisecondsSinceEpoch(
         int.parse(expiresAtMillis),
