@@ -4,8 +4,8 @@ version: 2.0.1
 repository: https://github.com/netsells/oauth_interceptor
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
-  flutter: ">=3.10.0"
+  sdk: ">=2.17.6 <4.0.0"
+  flutter: ">=3.7.0"
 
 dependencies:
   clock: ^1.1.1
@@ -18,4 +18,4 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  netsells_flutter_analysis: ^5.0.0
+  netsells_flutter_analysis: ^4.0.0
