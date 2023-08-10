@@ -1,3 +1,7 @@
+## 2.0.1
+
+- Fixed reading expiry time
+
 ## 2.0.0
 
 - Upgrades for Dart 3
