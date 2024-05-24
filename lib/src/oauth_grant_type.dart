@@ -34,7 +34,7 @@ class PasswordGrant extends OAuthGrantType {
 
   final String username;
   final String password;
-  final List<String> scope;
+  final List<String>? scope;
 
   @override
   RequestOptions handle(RequestOptions request) {
@@ -42,7 +42,7 @@ class PasswordGrant extends OAuthGrantType {
       'grant_type': 'password',
       'username': username,
       'password': password,
-      'scope': scope.join(' '),
+      if (scope != null) 'scope': scope!.join(' '),
     };
 
     return request;

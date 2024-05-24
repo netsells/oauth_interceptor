@@ -1,3 +1,7 @@
+## 2.0.2
+
+- Allow scope parameter to be null
+
 ## 2.0.1
 
 - Fixed reading expiry time
