@@ -29,7 +29,7 @@ class PasswordGrant extends OAuthGrantType {
   PasswordGrant({
     required this.username,
     required this.password,
-    this.scope = const [],
+    this.scope,
   });
 
   final String username;

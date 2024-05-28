@@ -1,6 +1,6 @@
-## 2.0.2
+## 2.1.0
 
-- Allow scope parameter to be null
+- Allow scope parameter to be null. Scope parameter will also default to null.
 
 ## 2.0.1
 

@@ -1,6 +1,6 @@
 name: oauth_interceptor
 description: Oven-ready Dio interceptor for handling OAuth 2.0
-version: 2.0.2
+version: 2.1.0
 repository: https://github.com/netsells/oauth_interceptor
 
 environment:
