@@ -18,4 +18,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  http_mock_adapter: ^0.6.1
+  mocktail: ^1.0.4
   netsells_flutter_analysis: ^5.0.0
