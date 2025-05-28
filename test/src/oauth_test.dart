@@ -63,6 +63,8 @@ void main() {
         verify(() => handler.next(options)).called(1);
         final signedIn = await oauth.isSignedIn;
         expect(signedIn, isTrue);
+        final token = await oauth.token;
+        expect(token, 'abcdef');
       });
 
       test('adds nothing if no token is present', () async {
@@ -81,6 +83,8 @@ void main() {
         verify(() => handler.next(options)).called(1);
         final signedIn = await oauth.isSignedIn;
         expect(signedIn, isFalse);
+        final token = await oauth.token;
+        expect(token, isNull);
       });
 
       test('adds refreshed token if refresh is successful', () async {
@@ -118,6 +122,8 @@ void main() {
         verify(() => handler.next(options)).called(1);
         final signedIn = await oauth.isSignedIn;
         expect(signedIn, isTrue);
+        final token = await oauth.token;
+        expect(token, 'vwxyz');
       });
 
       test('return error if token refresh returns error', () async {
@@ -149,6 +155,8 @@ void main() {
         );
         final signedIn = await oauth.isSignedIn;
         expect(signedIn, isFalse);
+        final token = await oauth.token;
+        expect(token, isNull);
       });
     });
 
@@ -188,10 +196,117 @@ void main() {
         expect(refreshToken, '123456');
         final expectedExpiresAt =
             DateTime(2021, 1, 1, 0, 0, 36000).millisecondsSinceEpoch;
-        //expect(expiresAtMillis, expectedExpiresAt);
+        expect(int.parse(expiresAtMillis!), expectedExpiresAt);
 
         final signedIn = await oauth.isSignedIn;
         expect(signedIn, isTrue);
+        final token2 = await oauth.token;
+        expect(token2, 'abcdef');
+      });
+
+      test('does not store token if login request is unsuccessful', () async {
+        adapter.onPost(
+          'oauth/token',
+          (server) {
+            server.reply(
+              400,
+              <String, dynamic>{'error_message': 'error'},
+            );
+          },
+          data: {
+            'grant_type': 'password',
+            'username': 'test@test.com',
+            'password': 'P4ssword',
+            'client_id': 'id',
+            'client_secret': 'secret',
+          },
+        );
+
+        await expectLater(
+          oauth.login(
+            PasswordGrant(username: 'test@test.com', password: 'P4ssword'),
+          ),
+          throwsA(isA<DioException>()),
+        );
+
+        final hasToken = await tokenStorage.containsKey(key: 'oauth-token');
+        expect(hasToken, isFalse);
+
+        final signedIn = await oauth.isSignedIn;
+        expect(signedIn, isFalse);
+        final token = await oauth.token;
+        expect(token, isNull);
+      });
+    });
+
+    group('Client login function', () {
+      test('stores access token if login is successful', () async {
+        adapter.onPost(
+          'oauth/token',
+          (server) {
+            server.reply(
+              200,
+              <String, dynamic>{
+                'access_token': 'abcdef',
+                'expires_in': 36000,
+                'refresh_token': '123456',
+              },
+            );
+          },
+          data: {
+            'grant_type': 'client_credentials',
+            'client_id': 'id',
+            'client_secret': 'secret',
+          },
+        );
+
+        await oauth.login(const ClientCredentialsGrant());
+
+        final token = await tokenStorage.read(key: 'oauth-token');
+        final refreshToken =
+            await tokenStorage.read(key: 'oauth-refresh-token');
+        final expiresAtMillis =
+            await tokenStorage.read(key: 'oauth-expires-at');
+        expect(token, 'abcdef');
+        expect(refreshToken, '123456');
+        final expectedExpiresAt =
+            DateTime(2021, 1, 1, 0, 0, 36000).millisecondsSinceEpoch;
+        expect(int.parse(expiresAtMillis!), expectedExpiresAt);
+
+        final signedIn = await oauth.isSignedIn;
+        expect(signedIn, isTrue);
+        final token2 = await oauth.token;
+        expect(token2, 'abcdef');
+      });
+
+      test('does not store token if login request is unsuccessful', () async {
+        adapter.onPost(
+          'oauth/token',
+          (server) {
+            server.reply(
+              400,
+              <String, dynamic>{'error_message': 'error'},
+            );
+          },
+          data: {
+            'grant_type': 'client_credentials',
+            'client_id': 'id',
+            'client_secret': 'secret',
+          },
+        );
+
+        await expectLater(
+          oauth.login(const ClientCredentialsGrant()),
+          throwsA(isA<DioException>()),
+        );
+
+        final hasToken = await tokenStorage.containsKey(key: 'oauth-token');
+        expect(hasToken, isFalse);
+
+        final signedIn = await oauth.isSignedIn;
+        expect(signedIn, isFalse);
+        final token = await oauth.token;
+        expect(token, isNull);
       });
     });
   });
