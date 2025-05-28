@@ -1,3 +1,7 @@
+## 2.2.0
+
+- Added tests to the project.
+
 ## 2.1.0
 
 - Allow scope parameter to be null. Scope parameter will also default to null.
