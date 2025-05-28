@@ -14,6 +14,15 @@ class MockRequestHandler extends Mock implements RequestInterceptorHandler {}
 
 void main() {
   group('OAuth', () {
+    const tokenStorageKey = 'oauth-token';
+    const refreshStorageKey = 'oauth-refresh-token';
+    const expiresAtStorageKey = 'oauth-expires-at';
+    const initialToken = 'abcdef';
+    const nextToken = 'vwxyz';
+    const initialRefreshToken = '123456';
+    const nextRefreshToken = '98765';
+    const expirySeconds = 36000;
+
     late FakeSecureStorage tokenStorage;
     late Clock clock;
     late OAuth oauth;
@@ -36,12 +45,15 @@ void main() {
     });
 
     Future<void> saveToken(DateTime expiresAt) async {
-      await tokenStorage.write(key: 'oauth-token', value: 'abcdef');
+      await tokenStorage.write(key: tokenStorageKey, value: initialToken);
       await tokenStorage.write(
-        key: 'oauth-expires-at',
+        key: expiresAtStorageKey,
         value: expiresAt.millisecondsSinceEpoch.toString(),
       );
-      await tokenStorage.write(key: 'oauth-refresh-token', value: '123456');
+      await tokenStorage.write(
+        key: refreshStorageKey,
+        value: initialRefreshToken,
+      );
     }
 
     group('Interceptor functions', () {
@@ -58,13 +70,13 @@ void main() {
 
         expect(
           options.headers,
-          containsPair('Authorization', 'Bearer abcdef'),
+          containsPair('Authorization', 'Bearer $initialToken'),
         );
         verify(() => handler.next(options)).called(1);
         final signedIn = await oauth.isSignedIn;
         expect(signedIn, isTrue);
         final token = await oauth.token;
-        expect(token, 'abcdef');
+        expect(token, initialToken);
       });
 
       test('adds nothing if no token is present', () async {
@@ -97,15 +109,15 @@ void main() {
             server.reply(
               200,
               <String, dynamic>{
-                'access_token': 'vwxyz',
-                'expires_in': 36000,
-                'refresh_token': '98765',
+                'access_token': nextToken,
+                'expires_in': expirySeconds,
+                'refresh_token': nextRefreshToken,
               },
             );
           },
           data: {
             'grant_type': 'refresh_token',
-            'refresh_token': '123456',
+            'refresh_token': initialRefreshToken,
             'client_id': 'id',
             'client_secret': 'secret',
           },
@@ -117,13 +129,13 @@ void main() {
 
         expect(
           options.headers,
-          containsPair('Authorization', 'Bearer vwxyz'),
+          containsPair('Authorization', 'Bearer $nextToken'),
         );
         verify(() => handler.next(options)).called(1);
         final signedIn = await oauth.isSignedIn;
         expect(signedIn, isTrue);
         final token = await oauth.token;
-        expect(token, 'vwxyz');
+        expect(token, nextToken);
       });
 
       test('return error if token refresh returns error', () async {
@@ -141,7 +153,7 @@ void main() {
           },
           data: {
             'grant_type': 'refresh_token',
-            'refresh_token': '123456',
+            'refresh_token': initialRefreshToken,
             'client_id': 'id',
             'client_secret': 'secret',
           },
@@ -168,9 +180,9 @@ void main() {
             server.reply(
               200,
               <String, dynamic>{
-                'access_token': 'abcdef',
-                'expires_in': 36000,
-                'refresh_token': '123456',
+                'access_token': initialToken,
+                'expires_in': expirySeconds,
+                'refresh_token': initialRefreshToken,
               },
             );
           },
@@ -187,21 +199,20 @@ void main() {
           PasswordGrant(username: 'test@test.com', password: 'P4ssword'),
         );
 
-        final token = await tokenStorage.read(key: 'oauth-token');
-        final refreshToken =
-            await tokenStorage.read(key: 'oauth-refresh-token');
+        final token = await tokenStorage.read(key: tokenStorageKey);
+        final refreshToken = await tokenStorage.read(key: refreshStorageKey);
         final expiresAtMillis =
-            await tokenStorage.read(key: 'oauth-expires-at');
-        expect(token, 'abcdef');
-        expect(refreshToken, '123456');
+            await tokenStorage.read(key: expiresAtStorageKey);
+        expect(token, initialToken);
+        expect(refreshToken, initialRefreshToken);
         final expectedExpiresAt =
-            DateTime(2021, 1, 1, 0, 0, 36000).millisecondsSinceEpoch;
+            DateTime(2021, 1, 1, 0, 0, expirySeconds).millisecondsSinceEpoch;
         expect(int.parse(expiresAtMillis!), expectedExpiresAt);
 
         final signedIn = await oauth.isSignedIn;
         expect(signedIn, isTrue);
         final token2 = await oauth.token;
-        expect(token2, 'abcdef');
+        expect(token2, initialToken);
       });
 
       test('does not store token if login request is unsuccessful', () async {
@@ -229,7 +240,7 @@ void main() {
           throwsA(isA<DioException>()),
         );
 
-        final hasToken = await tokenStorage.containsKey(key: 'oauth-token');
+        final hasToken = await tokenStorage.containsKey(key: tokenStorageKey);
         expect(hasToken, isFalse);
 
         final signedIn = await oauth.isSignedIn;
@@ -247,9 +258,9 @@ void main() {
             server.reply(
               200,
               <String, dynamic>{
-                'access_token': 'abcdef',
-                'expires_in': 36000,
-                'refresh_token': '123456',
+                'access_token': initialToken,
+                'expires_in': expirySeconds,
+                'refresh_token': initialRefreshToken,
               },
             );
           },
@@ -262,21 +273,20 @@ void main() {
 
         await oauth.login(const ClientCredentialsGrant());
 
-        final token = await tokenStorage.read(key: 'oauth-token');
-        final refreshToken =
-            await tokenStorage.read(key: 'oauth-refresh-token');
+        final token = await tokenStorage.read(key: tokenStorageKey);
+        final refreshToken = await tokenStorage.read(key: refreshStorageKey);
         final expiresAtMillis =
-            await tokenStorage.read(key: 'oauth-expires-at');
-        expect(token, 'abcdef');
-        expect(refreshToken, '123456');
+            await tokenStorage.read(key: expiresAtStorageKey);
+        expect(token, initialToken);
+        expect(refreshToken, initialRefreshToken);
         final expectedExpiresAt =
-            DateTime(2021, 1, 1, 0, 0, 36000).millisecondsSinceEpoch;
+            DateTime(2021, 1, 1, 0, 0, expirySeconds).millisecondsSinceEpoch;
         expect(int.parse(expiresAtMillis!), expectedExpiresAt);
 
         final signedIn = await oauth.isSignedIn;
         expect(signedIn, isTrue);
         final token2 = await oauth.token;
-        expect(token2, 'abcdef');
+        expect(token2, initialToken);
       });
 
       test('does not store token if login request is unsuccessful', () async {
@@ -300,7 +310,7 @@ void main() {
           throwsA(isA<DioException>()),
         );
 
-        final hasToken = await tokenStorage.containsKey(key: 'oauth-token');
+        final hasToken = await tokenStorage.containsKey(key: tokenStorageKey);
         expect(hasToken, isFalse);
 
         final signedIn = await oauth.isSignedIn;
