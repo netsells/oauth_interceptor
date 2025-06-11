@@ -1,3 +1,4 @@
+import 'package:flutter/src/foundation/basic_types.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class FakeSecureStorage implements FlutterSecureStorage {
@@ -105,4 +106,27 @@ class FakeSecureStorage implements FlutterSecureStorage {
 
   @override
   WebOptions get webOptions => throw UnimplementedError();
+
+  @override
+  Future<bool?> isCupertinoProtectedDataAvailable() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<bool>? get onCupertinoProtectedDataAvailabilityChanged =>
+      throw UnimplementedError();
+
+  @override
+  void registerListener(
+      {required String key, required ValueChanged<String?> listener}) {}
+
+  @override
+  void unregisterAllListeners() {}
+
+  @override
+  void unregisterAllListenersForKey({required String key}) {}
+
+  @override
+  void unregisterListener(
+      {required String key, required ValueChanged<String?> listener}) {}
 }
