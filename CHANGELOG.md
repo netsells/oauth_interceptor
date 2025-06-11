@@ -1,3 +1,7 @@
+## 2.2.1
+
+- Updated flutter_secure_storage to 9.2.4
+
 ## 2.2.0
 
 - Added tests to the project.
